@@ -80,7 +80,14 @@ int find_acc_on_this_cells_parts(sim_ptr sim,cell_ptr top,cell_ptr curr_cell,int
    FLOAT kacc,cacc,save[DIM];
    particle_ptr curr = curr_cell->first;
 
+   #pragma omp parallel private(i,d,xdir,ydir,true_dist,rel_vel,distsq,sacc,kacc,cacc,save)
+   {
+   #pragma omp single nowait
+   {
    while (curr) {
+
+      #pragma omp task firstprivate(curr)
+      {
 
       /* new way: find contribution of accelerations from each other
        * cell, one at a time */
@@ -264,8 +271,12 @@ int find_acc_on_this_cells_parts(sim_ptr sim,cell_ptr top,cell_ptr curr_cell,int
 
       // fprintf(stdout,"  vel at pt %g %g %g is %g %g %g\n",curr->x[0][0],curr->x[0][1],curr->x[0][2],curr->u[1][0],curr->u[1][1],curr->u[1][2]);
 
+      } // end of pragma omp task
+
       curr = curr->next;
    }
+   } // end of pragma omp single nowait
+   } // end of pragma omp parallel
 
    // free(acc);
 
@@ -441,6 +452,9 @@ find_strand_acc_on_this_part(sim_ptr sim,particle_ptr this){
 /*
  *  Find the acceleration on point from this cell; if the point is a
  *  particle, include the pointer.
+ *
+ *  HACK!!! This is the 3-dimensional form of Biot-Savart! Must make
+ *  correctly multi-dimensional!
  */
 int find_grav_acc_on_this_part(sim_ptr sim,cell_ptr curr_cell,particle_ptr this){
 

@@ -283,7 +283,6 @@ int write_pgm_density_3d(fileprop_ptr file,cell_ptr cell,field3_ptr ff,char *fil
 /*
  * Write a PGM image of the density field
  */
-//int write_2d_density(fileprop_ptr file,cell_ptr cell,field2_ptr ff,char *filename){
 int write_2d_density(fileprop_ptr file,cell_ptr cell,field2_ptr ff,int index){
 
    int contrast_enhance = TRUE;
@@ -291,6 +290,7 @@ int write_2d_density(fileprop_ptr file,cell_ptr cell,field2_ptr ff,int index){
    int nx = ff->n[0];
    int ny = ff->n[1];
    static FLOAT maxval = -1.0;
+   FLOAT thismaxval;
    FLOAT scale = 1.0;
    int printval;
    char filename[80];
@@ -298,19 +298,27 @@ int write_2d_density(fileprop_ptr file,cell_ptr cell,field2_ptr ff,int index){
 
    // make the full filename, default to png
    if (file->write_pgm) {
-      sprintf(filename,"%sdens_%04d.pgm",file->out_fn_root,index);
+      sprintf(filename,"%sdens_%05d.pgm",file->out_fn_root,index);
    } else {
-      sprintf(filename,"%sdens_%04d.png",file->out_fn_root,index);
+      sprintf(filename,"%sdens_%05d.png",file->out_fn_root,index);
    }
 
    // scale ff->rho to unit-maximum
    if (contrast_enhance || maxval < 0.0) {
+      thismaxval = 0.0;
       for (j=ny-1; j>=0; j--) {
          for (i=0; i<nx; i++) {
-             if (ff->rho[i][j] > maxval) maxval = ff->rho[i][j];
+             if (ff->rho[i][j] > thismaxval) thismaxval = ff->rho[i][j];
          }
       }
-      maxval *= 0.8;	// allow larger areas to be white
+      thismaxval *= 0.8;	// allow larger areas to be white
+
+      // shift maxval slowly toward new maxvals
+      if (maxval < 0.0) {
+         maxval = thismaxval;
+      } else {
+         maxval = 0.98*maxval + 0.02*thismaxval;
+      }
    }
    // fprintf(stdout,"maxval is %g\n",maxval);
 

@@ -535,12 +535,27 @@ int add_sphere_of_particles(sim_ptr sim,cell_ptr top,int cnt,FLOAT* c,FLOAT rad)
             for (d=0;d<DIM;d++) dist += pow(pos[d]-c[d],2);
             dist = sqrt(dist);
             // find mass of all particles within that radius
-            tangvel = (FLOAT)cnt * sim->new_part_mass * pow(dist/rad,3);
+            tangvel = (FLOAT)cnt * sim->new_part_mass * pow(dist/rad,DIM);
             // find tangential velocity to offset potential
-            tangvel = sqrt(sim->G*tangvel/dist);
-            vel[0] = -pos[1]*tangvel/dist;
-            vel[1] = pos[0]*tangvel/dist;
-            for (d=2;d<DIM;d++) vel[d] = 0.;
+            #if DIM==1
+               tangvel = sqrt(2.*sim->G*tangvel);
+            #elif DIM==2
+               // apparently we still use the 1/r^2 influence even though that's wrong
+               //tangvel = sqrt(2.*sim->G*tangvel/log(dist));
+               tangvel = sqrt(2.*sim->G*tangvel/dist);
+            #elif DIM==3
+               tangvel = sqrt(2.*sim->G*tangvel/dist);
+            #else
+               //tangvel = sqrt(2.*sim->G*tangvel/pow(dist,DIM-2));
+               tangvel = sqrt(2.*sim->G*tangvel/dist);
+            #endif
+            #if DIM==1
+              vel[0] = 0.0;
+            #else
+              vel[0] = -(pos[1]-c[1])*tangvel/dist;
+              vel[1] = (pos[0]-c[0])*tangvel/dist;
+              for (d=2;d<DIM;d++) vel[d] = 0.;
+            #endif
          //}
          newpart = new_particle(i,sim->new_part_mass,sim->new_part_rad,pos,vel);
          add_particle_to_cell(sim,newpart,top);

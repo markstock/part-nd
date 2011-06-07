@@ -82,7 +82,8 @@ cell_ptr build_new_tree(fileprop_ptr file,sim_ptr sim,cell_ptr oldtop) {
       newtop->max[i] = newtop->mid[i] + maxsize;
       fprintf(stdout,"    %g %g\n",newtop->min[i],newtop->max[i]);
    }
-   for (i=0; i<2; i++) sim->ff2->d[i] = (newtop->max[i]-newtop->min[i])/sim->ff2->n[i];
+   // new: never remake the ff2 values
+   //for (i=0; i<2; i++) sim->ff2->d[i] = (newtop->max[i]-newtop->min[i])/sim->ff2->n[i];
    for (i=0; i<2; i++) file->out->d[i] = (newtop->max[i]-newtop->min[i])/file->out->n[i];
 
    // lastly, march through all particles in the old tree and place

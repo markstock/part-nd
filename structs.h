@@ -194,6 +194,7 @@ typedef struct field3_record *field3_ptr;
 typedef struct field3_record {
    int n[3];                    // integer dimensions of the field values
    FLOAT d[3];                  // size of each cell
+   FLOAT o[3];                  // origin
    FLOAT ***rho;                // density array
 } FIELD3;
 
@@ -201,6 +202,7 @@ typedef struct field2_record *field2_ptr;
 typedef struct field2_record {
    int n[2];                    // integer dimensions of the field values
    FLOAT d[2];                  // size of each cell
+   FLOAT o[2];                  // origin
    FLOAT **rho;                 // density array
 } FIELD2;
 

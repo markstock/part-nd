@@ -186,8 +186,10 @@ int add_particle_to_field_2d(cell_ptr top,particle_ptr curr,field2_ptr ff) {
 
    // find min and max cells affected
    for (i=0; i<DIM; i++) {
-      start[i] = 0.5+(curr->x[0][i]-rad-top->min[i])/ff->d[i];
-      end[i] = (curr->x[0][i]+rad-top->min[i])/ff->d[i] - 0.5;
+      //start[i] = 0.5+(curr->x[0][i]-rad-top->min[i])/ff->d[i];
+      //end[i] = (curr->x[0][i]+rad-top->min[i])/ff->d[i] - 0.5;
+      start[i] = 0.5+(curr->x[0][i]-rad-ff->o[i])/ff->d[i];
+      end[i] = (curr->x[0][i]+rad-ff->o[i])/ff->d[i] - 0.5;
       if (start[i] < 0) start[i] = 0;
       if (end[i] >= ff->n[i]) end[i] = ff->n[i]-1;
    }
@@ -196,10 +198,12 @@ int add_particle_to_field_2d(cell_ptr top,particle_ptr curr,field2_ptr ff) {
 
    // apply spherical kernel across that range
    for (i=start[lx]; i<=end[lx]; i++) {
-      distsqx = pow( curr->x[0][lx] - (top->min[lx] + ff->d[lx]*(0.5+(FLOAT)i)) , 2);
+      //distsqx = pow( curr->x[0][lx] - (top->min[lx] + ff->d[lx]*(0.5+(FLOAT)i)) , 2);
+      distsqx = pow( curr->x[0][lx] - (ff->o[lx] + ff->d[lx]*(0.5+(FLOAT)i)) , 2);
       // fprintf(stdout,"  i %d, dx %g\n",i,sqrt(distsqx));
       for (j=start[ly]; j<=end[ly]; j++) {
-         distsq = distsqx + pow( curr->x[0][ly] - (top->min[ly]+ff->d[ly]*(0.5+(FLOAT)j)) , 2);
+         //distsq = distsqx + pow( curr->x[0][ly] - (top->min[ly]+ff->d[ly]*(0.5+(FLOAT)j)) , 2);
+         distsq = distsqx + pow( curr->x[0][ly] - (ff->o[ly]+ff->d[ly]*(0.5+(FLOAT)j)) , 2);
 //       distsqy = distsqx + pow( curr->x[0][ly] - (top->min[ly]+ff->d[ly]*(0.5+(FLOAT)j)) , 2);
 //       for (k=start[ld]; k<=end[ld]; k++) {
 //          distsq = distsqy + pow( curr->x[0][ld] - (top->min[ld]+ff->d[ld]*(0.5+(FLOAT)k)) , 2);

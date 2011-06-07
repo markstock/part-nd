@@ -48,16 +48,19 @@ int write_output(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
 
    /* actually write the output here */
    if (file->write_dot) {
+      fprintf(stdout,"  writing dots, step %d\n",sim->next_output_index);
       write_2d_dots(file,top,sim->next_output_index);
    }
 
    if (file->write_rad) {
+      fprintf(stdout,"  writing rad, step %d\n",sim->next_output_index);
 #ifndef GRAV_ONLY
       if (sim->num_strands > 0) write_rad_strand(file,sim,top);
 #endif
       write_rad(file,sim,top);
    }
    if (file->write_part) {
+      fprintf(stdout,"  writing part, step %d\n",sim->next_output_index);
       // write_part(file,sim,top);
       write_reg_part(file,sim,top);
    }
@@ -65,6 +68,7 @@ int write_output(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
 
    // create the density field, hopefully more later
    if (sim->use_density_field) {
+      fprintf(stdout,"  writing dens, step %d\n",sim->next_output_index);
       create_density_field_2d(top,top,sim->ff2);
       write_2d_density(file,top,sim->ff2,sim->next_output_index);
    }

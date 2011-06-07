@@ -2,7 +2,7 @@
  *
  *  part-nd.c - Three-dimensional particle simulator
  *
- *  Copyright (C) 2000-2005  Mark J. Stock, mstock@umich.edu
+ *  Copyright (C) 2000-2005,08,11  Mark J. Stock, mstock@umich.edu
  * 
  *  This file is part of part-nd.
  *
@@ -37,6 +37,8 @@
  * 2005-02-09 MJS  v1.2  Now called part-nd, arbitrary-dimensional,
  *                       supports all other forces in arbitrary dims
  * 2005-02-23 MJS  v1.3  Now writes png natively, removed GIF support
+ * 2005-09-14 MJS  v1.4  Added something, who knows what?
+ * 2011-06-06 MJS  v1.5  Smarter builds, debugged
  *
  *********************************************************** */
 
@@ -138,13 +140,13 @@ int run_sim(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
       // if (fabs(sim->time - sim->next_output_time) < 1e-5) {
       // if (fabs(sim->time - sim->next_output_time) < sim->dt/2.0) {
       if ((sim->time - sim->next_output_time) > sim->dt/2.0) {
-         fprintf(stdout,"  writing output step %d\n",sim->next_output_index);
+         //fprintf(stdout,"  writing output step %d\n",sim->next_output_index);
 
          /* actually write the output here */
          write_output(file,sim,top);
 
          /* compute some other stats */
-         if (0) {
+         if (FALSE) {
             for (i=0;i<DIM;i++) momentum[i] = 0.0;
             mass = calculate_momentum(sim,top,top,momentum,0.0);
             fprintf(stdout,"    avg. momentum %g %g %g\n",momentum[0]/mass,momentum[1]/mass,momentum[2]/mass);

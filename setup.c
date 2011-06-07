@@ -217,6 +217,7 @@ int initialize_system(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
       // set the cell sizes
       for (i=0; i<2; i++) sim->ff2->n[i] = file->out_img_size;
       for (i=0; i<2; i++) sim->ff2->d[i] = (top->max[i]-top->min[i])/sim->ff2->n[i];
+      for (i=0; i<2; i++) sim->ff2->o[i] = top->min[i];
 
       // allocate memory for the array
       // ff->rho = allocate_3d_array_F(ff->n[0],ff->n[1],ff->n[2]);
@@ -467,10 +468,11 @@ int add_box_of_ni_particles(sim_ptr sim,cell_ptr top,int cnt,FLOAT* start,FLOAT*
 int add_sphere_of_particles(sim_ptr sim,cell_ptr top,int cnt,FLOAT* c,FLOAT rad) {
 
    int i,d,keep_trying,ntried,isitfree,quit_altogether;
-   int galaxy_like = TRUE;
+   int pancake = TRUE;
    FLOAT pos[DIM],s[DIM],dist;
    FLOAT loc[DIM],size[DIM];
    FLOAT vel[DIM];
+   FLOAT tangvel;
    particle_ptr newpart;
 
    quit_altogether = FALSE;
@@ -491,16 +493,19 @@ int add_sphere_of_particles(sim_ptr sim,cell_ptr top,int cnt,FLOAT* c,FLOAT rad)
          ntried++;
          isitfree = TRUE;
 
-         for (d=0;d<DIM;d++) pos[d] = s[d] + 2.0*rad*(rand()/(RAND_MAX+1.0));
-         if (galaxy_like)
-            for (d=2;d<DIM;d++) pos[d] = c[d] + 0.1*rad*(2.0*rand()/(RAND_MAX+1.0)-1.0);
+         //for (d=0;d<DIM;d++) pos[d] = s[d] + 2.0*rad*(rand()/(RAND_MAX+1.0));
+         for (d=0;d<DIM;d++) pos[d] = 2.0*rand()/(RAND_MAX+1.0) - 1.0;
+         //if (pancake)
+         //   for (d=2;d<DIM;d++) pos[d] = c[d] + 0.1*rad*(2.0*rand()/(RAND_MAX+1.0)-1.0);
          // fprintf(stdout,"  testing pt %g %g %g\n",xpos,ypos,zpos);
 
          // is this space within the sphere?
          dist = 0.;
-         for (d=0;d<DIM;d++) dist += pow(pos[d]-c[d],2);
-         dist = sqrt(dist);
-         if (dist+sim->new_part_rad > rad) isitfree = FALSE;
+         //for (d=0;d<DIM;d++) dist += pow(pos[d]-c[d],2);
+         for (d=0;d<DIM;d++) dist += pow(pos[d],2);
+         //dist = sqrt(dist);
+         //if (dist+sim->new_part_rad > rad) isitfree = FALSE;
+         if (dist > 1.0) isitfree = FALSE;
          // fprintf(stdout,"    dist (%g) + newrad (%g) > rad (%g)\n",dist,sim->new_part_rad,rad);
 
          // if (isitfree) isitfree = is_this_space_open2(top,pos,sim->new_part_rad);
@@ -512,19 +517,31 @@ int add_sphere_of_particles(sim_ptr sim,cell_ptr top,int cnt,FLOAT* c,FLOAT rad)
             quit_altogether = TRUE;
          }
       }
-      if (galaxy_like)
-         for (d=2;d<DIM;d++) pos[d] *= 0.1;
+
+      // flatten it like a pancake
+      if (pancake) for (d=2;d<DIM;d++) pos[d] *= 0.1;
+
+      // position to center and radius
+      for (d=0;d<DIM;d++) pos[d] = c[d] + rad*pos[d];
 
       if (quit_altogether) {
-         /* get me out of this shitbag loop */
+         /* get me out here */
          i += cnt;
       } else {
          /* this location is good, place the particle */
-         if (galaxy_like) {
-            vel[0] = -pos[1];
-            vel[1] = pos[0];
+         //if (pancake) {
+            // find distance from center of local cluster
+            dist = 0.0;
+            for (d=0;d<DIM;d++) dist += pow(pos[d]-c[d],2);
+            dist = sqrt(dist);
+            // find mass of all particles within that radius
+            tangvel = (FLOAT)cnt * sim->new_part_mass * pow(dist/rad,3);
+            // find tangential velocity to offset potential
+            tangvel = sqrt(sim->G*tangvel/dist);
+            vel[0] = -pos[1]*tangvel/dist;
+            vel[1] = pos[0]*tangvel/dist;
             for (d=2;d<DIM;d++) vel[d] = 0.;
-         }
+         //}
          newpart = new_particle(i,sim->new_part_mass,sim->new_part_rad,pos,vel);
          add_particle_to_cell(sim,newpart,top);
          /* fprintf(stdout,"  placed pt there\n"); */

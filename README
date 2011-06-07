@@ -4,7 +4,7 @@ part-nd
 An arbitrary-dimensional particle simulator
 Mark J Stock <mstock@umich.edu>
 
-http://mark.technolope.org/part-nd/
+http://markjstock.org/part-nd/
 
 
 I. Building the software --------------------------------------------------
@@ -23,14 +23,7 @@ In the directory that this file is in, just type
 
 make
 
-and several binary executables will be made. If you are interested in
-an optimized gravitation-only code, you can type
-
-make grav-3d
-or
-make grav-2d
-
-or whatever dimension you want.
+and binary executables for 1D to 4D will be made.
 
 
 II. Usage -----------------------------------------------------------------
@@ -80,9 +73,13 @@ love to hear from you.
 Mark
 mstock@umich.edu
 2005-09-14
+2011-06-07
 
 
 Appendix A --- Change Log -------------------------------------------------
+
+v1.5	Output window is fixed-size, initial velocities for "sphere" are 
+	better, OpenMP directives added, but untested
 
 v1.4	Windows and Linux executables included
 
@@ -114,3 +111,4 @@ Appendix B --- Gnu General Public License ------------------------------
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+

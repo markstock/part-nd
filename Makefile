@@ -1,5 +1,16 @@
 # Makefile for part-nd, an arbitrary-dimensional particle system
 
+# build options
+#DEBUG=1
+OPENMP=1
+CC=gcc
+
+# build targets
+all: .part .grav
+#all: part-2d part-3d
+#all: grav-2d
+
+
 # the neccessary c files
 CFILES = main.c findvel.c ndtree.c density.c setup.c writeout.c
 HFILES = structs.h
@@ -11,42 +22,43 @@ CFLAGS = -lm -lpng -O2 -funroll-loops -ffast-math -malign-double
 #CFLAGS = -lm -pg -g -ggdb
 #CFLAGS = -I/Developer/SDKs/MacOSX10.5.sdk/usr/X11/include -L/Developer/SDKs/MacOSX10.5.sdk/usr/X11/lib -lm -lpng -O2 -funroll-loops -ffast-math -malign-double
 
+ifdef DEBUG
+  CFLAGS+=-g -p -ggdb -fbounds-check
+else
+  CFLAGS+=-O2 -funroll-loops -ffast-math -fomit-frame-pointer
+  CFLAGS+=-mtune=generic
+endif
+ifdef OPENMP
+  CFLAGS+=-fopenmp
+endif
 
-#all: part-2d part-3d
-all: grav-2d
+ifeq ($(UNAME), Linux)
+  LFLAGS=
+endif
+ifeq ($(UNAME), Darwin)
+  LFLAGS=-L/Developer/SDKs/MacOSX10.5.sdk/usr/X11/lib
+  CFLAGS=-I/Developer/SDKs/MacOSX10.5.sdk/usr/X11/include
+endif
+LFLAGS+=-lm -lgfortran -lpng
 
-part-1d: $(CFILES) $(HFILES) Makefile
-	gcc -o part-1d -DONE $(CFLAGS) $(CFILES)
-	@echo "part-1d made"
+DIMS=`seq 1 4`
 
-part-2d: $(CFILES) $(HFILES) Makefile
-	gcc -o part-2d -DTWO $(CFLAGS) $(CFILES)
-	@echo "part-2d made"
+.part : $(CFILES) $(HFILES) Makefile
+	for dim in $(DIMS); do \
+	  echo "$(CC) $(CFLAGS) -DDIM=$$dim -o part-$${dim}d $(CFILES) $(LFLAGS)" ;\
+	  $(CC) $(CFLAGS) -DDIM=$$dim -o part-$${dim}d $(CFILES) $(LFLAGS) ;\
+	done ;\
+	touch $@
 
-part-3d: $(CFILES) $(HFILES) Makefile
-	gcc -o part-3d -DTHREE $(CFLAGS) $(CFILES)
-	@echo "part-3d made"
-
-part-4d: $(CFILES) $(HFILES) Makefile
-	gcc -o part-4d -DFOUR $(CFLAGS) $(CFILES)
-	@echo "part-4d made"
-
-grav-1d: $(CFILES) $(HFILES) Makefile
-	gcc -o grav-1d -DONE -DGRAV_ONLY $(CFLAGS) $(CFILES)
-	@echo "grav-1d made"
-
-grav-2d: $(CFILES) $(HFILES) Makefile
-	gcc -o grav-2d -DTWO -DGRAV_ONLY $(CFLAGS) $(CFILES)
-	@echo "grav-2d made"
-
-grav-3d: $(CFILES) $(HFILES) Makefile
-	gcc -o grav-3d -DTHREE -DGRAV_ONLY $(CFLAGS) $(CFILES)
-	@echo "grav-3d made"
-
-grav-4d: $(CFILES) $(HFILES) Makefile
-	gcc -o grav-4d -DFOUR -DGRAV_ONLY $(CFLAGS) $(CFILES)
-	@echo "grav-4d made"
+.grav : $(CFILES) $(HFILES) Makefile
+	for dim in $(DIMS); do \
+	  echo "$(CC) $(CFLAGS) -DGRAV_ONLY -DDIM=$$dim -o grav-$${dim}d $(CFILES) $(LFLAGS)" ;\
+	  $(CC) $(CFLAGS) -DGRAV_ONLY -DDIM=$$dim -o grav-$${dim}d $(CFILES) $(LFLAGS) ;\
+	done ;\
+	touch $@
 
 lint:
 	lint -abchp $(CFILES)
 
+clean:
+	rm -f *.o part-?d grav-?d .part .grav

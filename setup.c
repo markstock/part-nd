@@ -981,10 +981,10 @@ int add_galaxy (sim_ptr sim, cell_ptr top, int cnt,
 
 
 /*
- * find a random point on a given sphere shell
+ * find a random point on a given sphere shell centered at the origin
  *
  * inputs
- *   center[DIM]  starting location
+ *   rad	radius of shell
  *
  * outputs
  *   loc[DIM]  new point
@@ -996,7 +996,14 @@ void pick_point_on_sphere (FLOAT* loc,FLOAT rad) {
    FLOAT len;
 
    // then move it due to random motion
-#if DIM==2
+#if DIM==1
+   temp[0] = rand()/(RAND_MAX+1.0);
+   if (temp[0] > 0.5) {
+      loc[0] = rad;
+   } else {
+      loc[0] = -rad;
+   }
+#elif DIM==2
    // second method uses no iteration at all, because sin/cos is accelerated
    temp[0] = 6.2831853071795864 * rand()/(RAND_MAX+1.0);
    loc[0] = cos(temp[0]);
@@ -1019,7 +1026,9 @@ void pick_point_on_sphere (FLOAT* loc,FLOAT rad) {
    len = 2.;
    while (len > 1.) {
       for (d=0;d<DIM;d++) loc[d] = 2.*rand()/(RAND_MAX+1.0) - 1.;
-      len = vec_length_sq(loc);
+      len = 0.0;
+      for (d=0;d<DIM;d++) len += pow(loc[d],2);
+      //len = vec_length_sq(loc);
    }
    len = sqrt(len);
    for (d=0;d<DIM;d++) loc[d] = rad*loc[d]/len;

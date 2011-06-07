@@ -39,8 +39,10 @@
  */
 
 // probably keep this how it is
+#ifndef FLOAT
 //#define FLOAT double
 #define FLOAT float
+#endif
 
 // use float or double-precision arithmetic
 // make a gravitation-optimized code
@@ -53,9 +55,8 @@
 // IMPORTANT: everything here and below shouldn't be changed
 //
 
-#ifdef ONE
+#if DIM==1
 // number of spatial dimensions --- must set NCHILD manually (sorry!)
-#define DIM 1
 // NCHILD must be 2^(DIM+1) to accomodate mass as a tree variable or 2^DIM if not
 #define NCHILD 2
 #ifdef MASS_IS_DIMENSION
@@ -65,9 +66,8 @@
 #endif
 #endif
 
-#ifdef TWO
+#if DIM==2
 // number of spatial dimensions --- must set NCHILD manually (sorry!)
-#define DIM 2
 // NCHILD must be 2^(DIM+1) to accomodate mass as a tree variable or 2^DIM if not
 #ifdef MASS_IS_DIMENSION
 #define NCHILD 8
@@ -76,9 +76,8 @@
 #endif
 #endif
 
-#ifdef THREE
+#if DIM==3
 // number of spatial dimensions --- must set NCHILD manually (sorry!)
-#define DIM 3
 // NCHILD must be 2^(DIM+1) to accomodate mass as a tree variable or 2^DIM if not
 #ifdef MASS_IS_DIMENSION
 #define NCHILD 16
@@ -87,9 +86,8 @@
 #endif
 #endif
 
-#ifdef FOUR
+#if DIM==4
 // number of spatial dimensions --- must set NCHILD manually (sorry!)
-#define DIM 4
 // NCHILD must be 2^(DIM+1) to accomodate mass as a tree variable or 2^DIM if not
 #ifdef MASS_IS_DIMENSION
 #define NCHILD 32

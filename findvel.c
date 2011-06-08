@@ -46,7 +46,7 @@ int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
    cell_ptr *boxptr;
 
    // how many threads will we be using?
-   num_threads = omp_get_num_procs();
+   num_threads = omp_get_num_threads();
 
    // what's our threshold for opening a target box?
    open_thresh = top->num / (num_threads*10);
@@ -76,7 +76,7 @@ int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
    //}
 
    // then, sort those cells by number of particles
-   // sort_box_list(boxcnt,boxnum,boxptr);
+   sort_box_list(boxcnt,boxnum,boxptr);
 
    // debug print the list
    //for (i=0; i<boxcnt; i++) {
@@ -125,6 +125,40 @@ int make_target_box_list (cell_ptr this, int thresh, int cnt, int *boxnum, cell_
 }
 
 
+/* 
+ *  Sort the list of target boxes so that the biggest ones get done first
+ */
+int sort_box_list (int cnt, int *boxnum, cell_ptr *boxptr) {
+
+   int i,j,tempnum;
+   cell_ptr tempptr;
+
+   // insertion sort
+/*
+ for j ←1 to length(A)-1
+     key ← A[ j ]
+     > A[ j ] is added in the sorted sequence A[0, .. j-1]
+     i ← j - 1
+     while i >= 0 and A [ i ] > key
+         A[ i +1 ] ← A[ i ]
+         i ← i -1
+     A [i +1] ← key
+*/
+   for (j=0; j<cnt; j++) {
+      tempnum = boxnum[j];
+      tempptr = boxptr[j];
+      i = j-1;
+      while (i >= 0 && boxnum[i] < tempnum) {
+         boxnum[i+1] = boxnum[i];
+         boxptr[i+1] = boxptr[i];
+         i = i-1;
+      }
+      boxnum[i+1] = tempnum;
+      boxptr[i+1] = tempptr;
+   }
+
+   return(cnt);
+}
 #endif
 
 

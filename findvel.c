@@ -37,12 +37,32 @@ FLOAT find_vmax(cell_ptr,cell_ptr,FLOAT);
 
 #ifdef _OPENMP
 /*
+ * qsort int comparison function
+ */ 
+int box_cmp(const void *a, const void *b) { 
+   //const cell_ptr ia = (const cell_ptr)a; // casting pointer types 
+   //const cell_ptr ib = (const cell_ptr)b;
+   cell_ptr *ia = (cell_ptr*)a;
+   cell_ptr *ib = (cell_ptr*)b;
+   //return *ia  - *ib; 
+   //fprintf(stdout,"    cmp %d %d\n",((cell_ptr)a)->num,((cell_ptr)b)->num);
+   //fprintf(stdout,"        %d %d\n",(*ia)->num,((cell_ptr*)b)->num);
+   //fprintf(stdout,"cmp %ld %ld %ld %ld\n",a,&a,&ia[0]);
+   //return ((cell_ptr*)a)->num - ((cell_ptr*)b)->num; 
+   return (*ib)->num - (*ia)->num; 
+   //return (0);
+   /* integer comparison: returns negative if b > a 
+      and positive if a > b */ 
+}
+
+
+/*
  * New, multithreaded method for finding new velocities
  */
 int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
 
    int i,num_threads,open_thresh,max_box,boxcnt;
-   int *boxnum;
+   //int *boxnum;
    cell_ptr *boxptr;
 
    // how many threads will we be using?
@@ -59,28 +79,36 @@ int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
    //fprintf(stdout,"max num boxes %d\n",max_box);
 
    // allocate enough space for those boxes
-   boxnum = (int *)malloc(max_box * sizeof(int));
+   //boxnum = (int *)malloc(max_box * sizeof(int));
    boxptr = (cell_ptr *)malloc(max_box * sizeof(cell_ptr));
 
    // initialize the list
    boxcnt = 0;
-   for (i=0; i<max_box; i++) boxnum[i] = 0;
+   //for (i=0; i<max_box; i++) boxnum[i] = 0;
    for (i=0; i<max_box; i++) boxptr[i] = NULL;
 
    // then, assemble a list of target cells---it doesn't matter what level
-   boxcnt = make_target_box_list(top,open_thresh,boxcnt,boxnum,boxptr);
+   //boxcnt = make_target_box_list(top,open_thresh,boxcnt,boxnum,boxptr);
+   boxcnt = make_target_box_list(top,open_thresh,boxcnt,boxptr);
 
    // debug print the list
    //for (i=0; i<boxcnt; i++) {
-   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+      //fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxptr[i]->num);
    //}
 
    // then, sort those cells by number of particles
-   sort_box_list(boxcnt,boxnum,boxptr);
+   //sort_box_list(boxcnt,boxnum,boxptr);
+
+   // stdlib quicksort
+   //fprintf(stdout,"first cell %d %ld\n",boxptr[0]->num,&boxptr[0]);
+   (void) qsort (boxptr, (size_t)boxcnt, sizeof(cell_ptr), box_cmp);
+   //fprintf(stdout,"first cell %d %ld\n",boxptr[0]->num,&boxptr[0]);
 
    // debug print the list
    //for (i=0; i<boxcnt; i++) {
-   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+      //fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxptr[i]->num);
    //}
 
    // finally, loop over that list in parallel
@@ -98,7 +126,8 @@ int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
 /* 
  *  Add cells to the list of cells
  */
-int make_target_box_list (cell_ptr this, int thresh, int cnt, int *boxnum, cell_ptr *boxptr) {
+//int make_target_box_list (cell_ptr this, int thresh, int cnt, int *boxnum, cell_ptr *boxptr) {
+int make_target_box_list (cell_ptr this, int thresh, int cnt, cell_ptr *boxptr) {
 
    int i;
 
@@ -107,14 +136,16 @@ int make_target_box_list (cell_ptr this, int thresh, int cnt, int *boxnum, cell_
    if (this->has_subcells && this->num > thresh) {
 
       // open it up and test the contents
-      for (i=0;i<NCHILD;i++)
-         cnt = make_target_box_list (this->s[i],thresh,cnt,boxnum,boxptr);
+      for (i=0;i<NCHILD;i++) {
+         //cnt = make_target_box_list (this->s[i],thresh,cnt,boxnum,boxptr);
+         cnt = make_target_box_list (this->s[i],thresh,cnt,boxptr);
+      }
 
    } else {
 
       // otherwise, check for any particles and add this box to the list
       if (this->num > 0) {
-         boxnum[cnt] = this->num;
+         //boxnum[cnt] = this->num;
          boxptr[cnt] = this;
          cnt++;
       }
@@ -134,16 +165,6 @@ int sort_box_list (int cnt, int *boxnum, cell_ptr *boxptr) {
    cell_ptr tempptr;
 
    // insertion sort
-/*
- for j ←1 to length(A)-1
-     key ← A[ j ]
-     > A[ j ] is added in the sorted sequence A[0, .. j-1]
-     i ← j - 1
-     while i >= 0 and A [ i ] > key
-         A[ i +1 ] ← A[ i ]
-         i ← i -1
-     A [i +1] ← key
-*/
    for (j=0; j<cnt; j++) {
       tempnum = boxnum[j];
       tempptr = boxptr[j];

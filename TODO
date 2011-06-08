@@ -1,0 +1,21 @@
+Code currently sets solid boundaries (for contact) to be the dimensions
+of the "top" cell after all particles have been created and the top cell
+shrunk. This is bad. Create a dummy cell with fixed dimensions that
+contains information on the solid boundaries!
+
+Incorporate the O(N) treecode from grav-nd_redo
+
+Fix the influence formulae to reflect the *actual* free-space Green's
+function solutions! Meaning: in 3D force goes as 1/r^2, but in 2D it 
+goes as 1/r, and in 4D it goes as 1/r^3.
+
+Offer an option to perform the gravitation computation using a distance
+dropoff that is some number of dimensions different than the actual
+spatial dimension.
+
+Can we somehow use SSE instructions for the innermost loops?
+(All particles in a source box affect one target particle---this should 
+be easy.)
+
+Is is more efficient to have two threads per core? Does latency cause
+the poor performance?

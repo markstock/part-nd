@@ -196,8 +196,16 @@ int run_sim(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
          sim->smerr = 0.0;
          sim->scnt = 0;
       }
+
       start_tics = clock();
-      find_new_vels(sim,top,top,update_grav);
+
+      // here's where the magic happens!
+      #ifdef _OPENMP
+         find_new_vels2(sim,top,update_grav);
+      #else
+         find_new_vels(sim,top,top,update_grav);
+      #endif
+
       stop_tics = clock();
       dtime = ((double)stop_tics-(double)start_tics)/CLOCKS_PER_SEC;
          fprintf(stdout,"    took %g sec\n",dtime);

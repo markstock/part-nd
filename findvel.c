@@ -25,6 +25,7 @@
 
 #include "structs.h"
 
+int find_new_vels2(sim_ptr,cell_ptr,int);
 int find_new_vels(sim_ptr,cell_ptr,cell_ptr,int);
 int find_acc_on_this_cells_parts(sim_ptr,cell_ptr,cell_ptr,int);
 int find_grav_acc_on_this_part(sim_ptr,cell_ptr,particle_ptr);
@@ -34,13 +35,106 @@ int find_acc_on_this_cell(sim_ptr,cell_ptr,cell_ptr,FLOAT*);
 FLOAT find_vmax(cell_ptr,cell_ptr,FLOAT);
 
 
+#ifdef _OPENMP
+/*
+ * New, multithreaded method for finding new velocities
+ */
+int find_new_vels2 (sim_ptr sim, cell_ptr top, int uga) {
+
+   int i,num_threads,open_thresh,max_box,boxcnt;
+   int *boxnum;
+   cell_ptr *boxptr;
+
+   // how many threads will we be using?
+   num_threads = omp_get_num_procs();
+
+   // what's our threshold for opening a target box?
+   open_thresh = top->num / (num_threads*10);
+
+   // what's the largest number of boxes possible?
+   max_box = NCHILD * top->num / open_thresh;
+
+   //fprintf(stdout,"%d threads\n",num_threads);
+   //fprintf(stdout,"open_thresh %d particles\n",open_thresh);
+   //fprintf(stdout,"max num boxes %d\n",max_box);
+
+   // allocate enough space for those boxes
+   boxnum = (int *)malloc(max_box * sizeof(int));
+   boxptr = (cell_ptr *)malloc(max_box * sizeof(cell_ptr));
+
+   // initialize the list
+   boxcnt = 0;
+   for (i=0; i<max_box; i++) boxnum[i] = 0;
+   for (i=0; i<max_box; i++) boxptr[i] = NULL;
+
+   // then, assemble a list of target cells---it doesn't matter what level
+   boxcnt = make_target_box_list(top,open_thresh,boxcnt,boxnum,boxptr);
+
+   // debug print the list
+   //for (i=0; i<boxcnt; i++) {
+   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+   //}
+
+   // then, sort those cells by number of particles
+   // sort_box_list(boxcnt,boxnum,boxptr);
+
+   // debug print the list
+   //for (i=0; i<boxcnt; i++) {
+   //   fprintf(stdout,"%d/%d %d\n",i,boxcnt,boxnum[i]);
+   //}
+
+   // finally, loop over that list in parallel
+   #pragma omp parallel for private(i) schedule(dynamic,1)
+   for (i=0; i<boxcnt; i++) {
+      (void) find_new_vels(sim,top,boxptr[i],uga);
+   } // end omp parallel for
+
+   //exit(0);
+
+   return(0);
+}
+
+
+/* 
+ *  Add cells to the list of cells
+ */
+int make_target_box_list (cell_ptr this, int thresh, int cnt, int *boxnum, cell_ptr *boxptr) {
+
+   int i;
+
+   // does this cell have more than the threshold number of particles?
+
+   if (this->has_subcells && this->num > thresh) {
+
+      // open it up and test the contents
+      for (i=0;i<NCHILD;i++)
+         cnt = make_target_box_list (this->s[i],thresh,cnt,boxnum,boxptr);
+
+   } else {
+
+      // otherwise, check for any particles and add this box to the list
+      if (this->num > 0) {
+         boxnum[cnt] = this->num;
+         boxptr[cnt] = this;
+         cnt++;
+      }
+
+   }
+
+   return(cnt);
+}
+
+
+#endif
+
+
 /* 
  *  Find the new velocity of each particle in the simulation
  */
 int find_new_vels(sim_ptr sim,cell_ptr top,cell_ptr curr_cell,int uga) {
 
    int i;
-   particle_ptr this;
+   //particle_ptr this;
 
    // if (sim->step > 472) {
    // fprintf(stdout,"this cell is at level %d, has %d particles\n",curr_cell->level,curr_cell->num);

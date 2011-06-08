@@ -2,7 +2,7 @@
 
 # build options
 #DEBUG=1
-#OPENMP=1
+OPENMP=1
 CC=gcc
 
 # build targets

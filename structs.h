@@ -32,7 +32,9 @@
 #include <math.h>
 //#include <malloc.h>
 #include "png.h"
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /*
  * Here are the defines:
@@ -323,6 +325,7 @@ typedef struct event_timer {
 
 
 // from findvel.c
+extern int find_new_vels2(sim_ptr,cell_ptr,int);
 extern int find_new_vels(sim_ptr,cell_ptr,cell_ptr,int);
 extern int find_acc_on_this_cells_parts(sim_ptr,cell_ptr,cell_ptr,int);
 extern int find_grav_acc_on_this_part(sim_ptr,cell_ptr,particle_ptr);

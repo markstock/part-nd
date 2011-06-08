@@ -28,13 +28,16 @@ and binary executables for 1D to 4D will be made.
 
 II. Usage -----------------------------------------------------------------
 
-Edit the sample.pnd file, making sure to match all coordinate input with
+Edit a sample*.pnd file, making sure to match all coordinate input with
 the number of dimensions in the problem.
 
 Unix users can then run the desired program as shown:
 
-part-2d sample.pnd
-part-2d < sample.pnd
+part-3d sample_part-3d.pnd
+part-3d < sample_part-3d.pnd
+
+grav-2d sample_grav-2d.pnd
+grav-2d < sample_grav-2d.pnd
 
 Windows users have several options. You can drag the .pnd file onto the
 appropriate .exe file, whereupon the output files will either appear in
@@ -44,13 +47,13 @@ case was C:\Documents and Settings\mstock).
 You can also run "cmd" to enter the DOS-like command prompt. From there,
 you can run
 
-part-2d.exe sample.pnd
+part-3d.exe sample_part-3d.pnd
 
 Lastly, you can download and install MSYS, a Unix-like environment,
 and run the program from within MSYS using
 
-part-2d.exe sample.pnd
-part-2d.exe < sample.pnd
+part-3d.exe sample_part-3d.pnd
+part-3d.exe < sample_part-3d.pnd
 
 If your .pnd file is set up to read in another file, you need to make
 sure that the other file is in either (or both) your current working

@@ -1,0 +1,85 @@
+# Input file for part3d
+
+# maximum number of particles to place (fewer will be used if they don't fit)
+particles	10000
+# all particles have this radius and mass
+rad		0.01
+mass		0.01
+
+# to create a volume of particles: number, xstart, xend, ystart, yend, zstart, zend
+#block		10000  0.8 1.0  0.0 1.0  0.0 1.0
+# same block, but force particles to be non-intersecting
+#niblock	10000  0.8 1.0  0.0 1.0  0.0 1.0
+# or, a block in 2D
+#block		10000  0.8 1.0  0.0 1.0
+#niblock	10000  0.8 1.0  0.0 1.0
+
+
+# or, create a block of randomly-placed particles in a sphere (num, center, radius)
+#sphere		10000  0.5 0.5 0.5  0.2
+# or, same but force non-intersecting
+nisphere	10000  0.4 0.1 0.4  0.3
+# the same in 2D
+#sphere		10000  0.0 0.0  0.2
+#nisphere	10000  0.0 0.0  0.2
+
+# to read in a list of particle positions from a file: filename,
+#    translate x, y, z, and velocity add u, v, w
+#read_part	output100.part	0.0 0.0 0.0  -1.0 0.0 0.0
+# or in 2D (make sure to read in a file that was written in 2D mode, too!
+#read_part	output100.part	0.0 0.0  -1.0 0.0
+
+# to create a strand of spaghetti/cable/rope: length per particle, number of particles, E, xstart, xend, ystart, yend, zstart, zend
+#strand 0.0025 1000 3.0e+10 0.45330993288 0.5406039187 0.0025  0.42679000056 0.55287886642 0.95
+# we'd also reccommend a small dt for this contact sim:
+# dt		0.000001
+
+# set simulation dt lower for higher rk, E
+# changed coeff. of friction, from 
+dt		0.001
+end_time	10.0
+output_dt	0.1		write output files this often
+
+# octree parameters (20, 20 are decent settings for most 3D sims)
+max_ppc		20		maximum number of particles per level
+max_levels	20		maximum number of levels in octree, root=1
+
+# apply r^-2 attraction force between all particles
+use_self_grav	no
+G		0.00001		gravitation constant
+# good to keep delta about the same as particle radius
+delta		0.01		gravitation anti-discontinuity addend
+# 1.5 gives about 1-2% accuracy, > is more accurate, do not use <0.75
+theta		1.5		Barnes and Hut's theta parameter
+#direct		yes		compare to direct method, compute errors
+
+# apply earth-like, constant-vector gravity
+use_uniform_grav yes
+g		0.0	-1.0	0.0
+# or, in 2D
+#g		0.0	-1.0
+
+# use contact forces? set stiffness (rk) and damping (rc)
+use_contact	yes
+rk		1.0e+3
+rc		1.0e+2
+contact_per_grav	1
+# for strands, part3d will compute rk and b(ending) from E and r
+
+# the outer bounds of the computational domain, particles outside of
+#   this bound will be removed from the simulation
+comp_domain	-1.0 1.0  -1.0 1.0  -1.0 1.0
+# or in 2D
+#comp_domain	-1.0 1.0  -1.0 1.0
+
+# some options on the output
+#outfile_root	output_		add extra prefix to all output file names
+#start_frame	1000		start output numbering at 1000
+image_size	512		resolution of all output images
+image_depth	8		8 or 16 bits per pixel
+density				create a density image
+write_pgm	no		write in ASCII PGM
+write_png	yes		call libpng to write png file
+write_rad	no
+write_part	no		can restart using these files
+

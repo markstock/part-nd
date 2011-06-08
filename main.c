@@ -38,7 +38,7 @@
  *                       supports all other forces in arbitrary dims
  * 2005-02-23 MJS  v1.3  Now writes png natively, removed GIF support
  * 2005-09-14 MJS  v1.4  Added something, who knows what?
- * 2011-06-06 MJS  v1.5  Smarter builds, debugged
+ * 2011-06-06 MJS  v1.5  Smarter builds, debugged, multithreaded
  *
  *********************************************************** */
 

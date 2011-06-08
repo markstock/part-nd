@@ -79,7 +79,7 @@ mstock@umich.edu
 Appendix A --- Change Log -------------------------------------------------
 
 v1.5	Output window is fixed-size, initial velocities for "sphere" are 
-	better, OpenMP directives added, but untested
+	better, OpenMP directives for multithreading added (65% efficient)
 
 v1.4	Windows and Linux executables included
 

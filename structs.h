@@ -222,6 +222,7 @@ typedef struct file_properties {
    int write_rad;		// write a 3D Radiance description of the scene
    int write_obj;		// write a scene description in obj format
    int write_part;		// write a part-nd description of the scene
+   int write_seg;		// write a segmented file of the motion of the particles
    int out_img_size;		// the height and width of the raster output
    FIELD2 out_field;		// initialize struct for output array, re-usable, now
    field2_ptr out;

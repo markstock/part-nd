@@ -1,10 +1,10 @@
 # Input file for part3d
 
 # maximum number of particles to place (fewer will be used if they don't fit)
-particles	100000
+particles	1000
 # all particles have this radius and mass
 rad		0.001
-mass		0.001
+mass		0.1
 
 # to create a volume of particles: number, xstart, xend, ystart, yend, zstart, zend
 #block		10000  0.8 1.0  0.0 1.0  0.0 1.0
@@ -19,7 +19,7 @@ mass		0.001
 # or, same but force non-intersecting
 #nisphere	10000  0.5 0.5 0.5  0.2
 # the same in 2D
-sphere		100000  0.0 0.0  0.6
+sphere		1000  0.0 0.0  0.6
 #nisphere	5000  3.0 3.0  0.2
 
 #galaxy 		10000  0 0 0  0 0 0
@@ -38,7 +38,7 @@ sphere		100000  0.0 0.0  0.6
 # set simulation dt lower for higher rk, E
 # changed coeff. of friction, from 
 dt		0.02
-end_time	0.2
+end_time	2.0
 output_dt	0.02		write output files this often
 
 # octree parameters (20, 20 are decent settings for most 3D sims)
@@ -83,4 +83,4 @@ write_pgm	no		write in ASCII PGM
 write_png	yes		call libpng to write png file
 write_rad	no
 write_part	no		can restart using these files
-
+write_seg	yes

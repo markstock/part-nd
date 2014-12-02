@@ -47,7 +47,7 @@
 
 int run_sim(fileprop_ptr,sim_ptr,cell_ptr);
 int set_dt(sim_ptr,cell_ptr);
-int advect_nodes(sim_ptr,cell_ptr,cell_ptr);
+int advect_nodes(sim_ptr,cell_ptr,cell_ptr,int);
 FLOAT calculate_total_energy(FLOAT,sim_ptr,cell_ptr,cell_ptr);
 FLOAT calculate_momentum(sim_ptr,cell_ptr,cell_ptr,FLOAT*,FLOAT);
 
@@ -74,7 +74,6 @@ int main(int argc,char **argv) {
    initialize_system(file,sim,top);
 
    /* Do the time integration */
-   // run_sim(file,sim,top,ff);
    run_sim(file,sim,top);
 
    fprintf(stderr,"\nDone.\n");
@@ -86,8 +85,7 @@ int main(int argc,char **argv) {
 /*
  *  Run the time integration of the flowfield simulation
  */
-// int run_sim(fileprop_ptr file,sim_ptr sim,cell_ptr top,field2_ptr ff) {
-int run_sim(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
+int run_sim (fileprop_ptr file, sim_ptr sim, cell_ptr top) {
 
    int i,retval,update_grav;
    FLOAT momentum[DIM],mass,energy;
@@ -221,10 +219,10 @@ int run_sim(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
       /* set_dt(sim,top); */
 
       /* advect the nodes, this doesn't move particles to their appropriate cells */
-      retval = advect_nodes(sim,top,top);
+      retval = advect_nodes(sim,top,top,file->write_seg);
       // fprintf(stdout,"    advect nodes threw %d\n",retval);
 
-      /* grow strands, if neccessary */
+      /* grow strands, if necessary */
 #ifndef GRAV_ONLY
       if (sim->num_strands > 0) grow_strands(sim);
 #endif
@@ -366,7 +364,7 @@ int set_dt(sim_ptr sim,cell_ptr top) {
 /*
  * advect all of the nodes
  */
-int advect_nodes(sim_ptr sim,cell_ptr top,cell_ptr curr_cell) {
+int advect_nodes (sim_ptr sim, cell_ptr top, cell_ptr curr_cell, int output_seg) {
 
    int i;
    int retval = 0;
@@ -379,6 +377,23 @@ int advect_nodes(sim_ptr sim,cell_ptr top,cell_ptr curr_cell) {
    particle_ptr curr = curr_cell->first;
    particle_ptr last = curr;
 
+   static int first_time = TRUE;
+   static FILE* outfp = NULL;
+   static int outcnt = 1;
+
+   if (first_time && output_seg) {
+      outfp = fopen("test.seg","w");
+      if (outfp==NULL) {
+         fprintf(stderr,"Could not open output file %s\n","test.seg");
+         fflush(stderr);
+         exit(0);
+      }
+      if (DIM == 2) fprintf(outfp,"d %d\n",3);
+      else fprintf(outfp,"d %d\n",DIM);
+   }
+   if (first_time) first_time = FALSE;
+
+   // now, do the work
    if (curr_cell == top) {
       cap_cnt = 0;
       max_accelsq = 0.0;
@@ -390,7 +405,7 @@ int advect_nodes(sim_ptr sim,cell_ptr top,cell_ptr curr_cell) {
 
    if (curr_cell->has_subcells) {
       for (i=0;i<NCHILD;i++)
-         retval = retval + advect_nodes(sim,top,curr_cell->s[i]);
+         retval = retval + advect_nodes(sim,top,curr_cell->s[i],output_seg);
 
    } else {
 
@@ -425,8 +440,35 @@ int advect_nodes(sim_ptr sim,cell_ptr top,cell_ptr curr_cell) {
 #else
             for (i=0;i<DIM;i++) newu[i] = curr->u[0][i] + curr->a[i] * sim->dt;
 #endif
+            // Here's where we write out .seg files
+            if (output_seg) {
+               // write start node
+               fprintf(outfp,"v");
+               for (i=0;i<DIM;i++) fprintf(outfp," %g",curr->x[0][i]);
+               if (DIM == 2) fprintf(outfp," %g",sim->time);
+               fprintf(outfp,"\n");
+               // write start radius
+               FLOAT rad = 0.0;
+               for (i=0;i<DIM;i++) rad += curr->u[0][i] * curr->u[0][i];
+               fprintf(outfp,"vr %g\n",sqrt(rad));
+            }
+
             for (i=0;i<DIM;i++) curr->x[0][i] += 0.5 * (curr->u[0][i] + newu[i]) * sim->dt;
             for (i=0;i<DIM;i++) curr->u[0][i] = newu[i];
+
+            if (output_seg) {
+               // end node and radius
+               fprintf(outfp,"v");
+               for (i=0;i<DIM;i++) fprintf(outfp," %g",curr->x[0][i]);
+               if (DIM == 2) fprintf(outfp," %g",sim->time+sim->dt);
+               fprintf(outfp,"\n");
+               FLOAT rad = 0.0;
+               for (i=0;i<DIM;i++) rad += curr->u[0][i] * curr->u[0][i];
+               fprintf(outfp,"vr %g\n",sqrt(rad));
+               // end segment
+               fprintf(outfp,"s %d/%d %d/%d\n",outcnt,outcnt,outcnt+1,outcnt+1);
+               outcnt += 2;
+            }
          }
 
          // and reset the acceleration to zero

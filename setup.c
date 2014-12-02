@@ -69,6 +69,7 @@ int initialize_system(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
    file->write_dot = FALSE;
    file->write_rad = FALSE;
    file->write_part = FALSE;
+   file->write_seg = FALSE;
    file->image_depth = 8;
    file->out_img_size = 256;
 
@@ -1215,6 +1216,11 @@ int read_input_file(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
                file->write_part = TRUE;
             else
                file->write_part = FALSE;
+         } else if (strncmp(token[0],"write_seg",9) == 0) {
+            if (strncmp(token[1],"yes",1) == 0)
+               file->write_seg = TRUE;
+            else
+               file->write_seg = FALSE;
          } else if (strncmp(token[0],"end_time",8) == 0) {
             sim->end_time = atof(token[1]);
          } else if (strncmp(token[0],"dt",2) == 0) {

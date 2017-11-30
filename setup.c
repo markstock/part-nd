@@ -125,6 +125,13 @@ int initialize_system(fileprop_ptr file,sim_ptr sim,cell_ptr top) {
    sim->use_density_field = FALSE;
    sim->construct_dens_surface = FALSE;
 
+   // Fix OSX builds - thanks to Pierre Pontier
+   sim->num_niblocks = 0;
+   sim->num_nispheres = 0;
+   sim->num_galaxy = 0;
+   sim->num_indiv_parts = 0;
+   sim->num_read_part = 0;
+   sim->num_read_stat = 0;
 
    /* assign default values for the top-level cell */
    top->level = 0;
